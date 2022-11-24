@@ -1,0 +1,11 @@
+%riconosciMembri(A, B, Risultato) :-
+%   jsonparse(B, StringaValue). %%% jsonparse analizza sia Array che Obj
+    %% Analizza A,
+    %% Concatena StrignaValue e StringaField
+
+%riconosciMembri(A, B, Risultato) :-
+    %% Analizza A e B come Stirghe
+ %   is_JSONString(B, _),
+  %  is_JSONString(A, _),
+   % atomic_list_concat([A | [B | []]], ', ', Risultato).
+    %% Concatena StrignaValue e StringaField
