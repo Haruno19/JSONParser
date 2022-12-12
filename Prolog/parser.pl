@@ -1,119 +1,144 @@
 % Parser formato JSON in Prolog con ricerca
 % Marcaccio Riccardo 886023
-% Gini Stefano 879276
 % Simioni Giorgio 887522
+% Gini Stefano 879276
 
 %% {[ jsonparse con stringa JSON Unbound ]}
 jsonparse(JSONAtom, JSONObj) :-
     var(JSONAtom),
-    funzione(JSONAtom, JSONObj),
+    parser(JSONAtomTerm, JSONObj),
+    term_to_atom(JSONAtomTerm, JSONAtom),
     !.
 
 %% {[ jsonparse con stringa JSON definita ]}
 jsonparse(JSONAtom, JSONObj) :-
     atom_string(JSONAtom, JSONString),
     term_string(JSONTerm, JSONString),
-    funzione(JSONTerm, JSONObj).
+    parser(JSONTerm, JSONObj).
 
 %% [] Caso base lista vuota []
-funzione([], []) :- !.
+parser([], []) :- !.
 
 %% { STRINGA JSON OGGETTO }
 
 %% { Caso base oggetto vuoto }
-funzione(X, jsonobj()) :- 
-    X =.. ['{}'],
+parser(JSONTerm, jsonobj()) :- 
+    JSONTerm =.. ['{}'],
+    !.
+    
+%% { Oggetto con un solo membro 'Field:Value' }
+parser(JSONTerm, jsonobj([MemberParsed])) :-
+    JSONTerm =.. ['{}' | [Member | []]],
+    parser(Member, MemberParsed),
     !.
 
-%% { Oggetto con almeno un membro 'Field:Value'}
-funzione(X, jsonobj(Result)) :-
-    X =.. ['{}' | [Ls]],
-    funzione(Ls, Result),
+%% { Oggetto con almeno due membri 'Field:Value'}
+parser(JSONTerm, jsonobj(MembersParsed)) :-
+    JSONTerm =.. ['{}' | [Members]],
+    parser(Members, MembersParsed),
     !.
 
 %% [ STRINGA JSON ARRAY ]
 
 %% [ Caso base array vuoto ]
-funzione(X, jsonarray()) :-
-    X =.. ['[]'],
+parser(JSONTerm, jsonarray()) :-
+    JSONTerm =.. ['[]'],
     !.
 
 %% [ Array con un elemento ]
-funzione(X, jsonarray([Ares])) :-
-    X =.. ['[|]', A , []],
-    funzioneControllo(A, Ares),
+parser(JSONTerm, jsonarray([ElementParsed])) :-
+    JSONTerm =.. ['[|]', Element , []],
+    parserControllo(Element, ElementParsed),
     !.
 
 %% [ Array con elementi > 1 ]
-funzione(X, jsonarray([Ares | Lres])) :-
-    X =.. ['[|]' | [A | [Ls]]],
-    funzioneControllo(A, Ares),
-    %isjsonvalue(A),
-    %Ls =.. [_ | [Y, [Z]]],
-    %funzione([',' | [Y, Z]], Lres),
-    funzioneArray(Ls, Lres),
+parser(JSONTerm, jsonarray([ElementParsed | ElementsParsed])) :-
+    JSONTerm =.. ['[|]' | [Element | [Elements]]],
+    parserControllo(Element, ElementParsed),
+    %isjsonvalue(A),    
+    parserArray(Elements, ElementsParsed),
     !.
 
 %% ( Divisione membri oggetto JSON in base al simbolo ',' )
-funzione(X, [Ares , Lres]) :- 
-    X =.. [',' | [A | [Ls]]],
-    funzione(A, Ares),
-    funzione(Ls, Lres),
-    Ls \= [],      
+parser(JSONTerm, [MemberParsed , MembersParsed]) :- 
+    JSONTerm =.. [',' | [Member | [Members]]],
+    parser(Member, MemberParsed),
+    parser(Members, MembersParsed),
+    Members \= [],
     !.
 
 %% : Scomposizione di Field e Value in base al simbolo ':' :
-funzione(X, (Ares, Bres)) :-
-    X =.. [':' | [A | [B]]],
-
-    %is_jsonfield(A),
-    funzioneControllo(A, Ares),
-    %isjsonvalue(B)
-    funzioneControllo(B, Bres),
+parser(JSONTerm, (FieldParsed, ValueParsed)) :-
+    JSONTerm =.. [':' | [Field | [Value]]],
+    parserControllo(Field, FieldParsed),    
+    string(Field),
+    parserControllo(Value, ValueParsed),
     !.
 
-%%FUNZIONE CONTROLLO E` UNA FUNZIONE FINALE CHE ANALIZZA I SINGOLI ELEMENTI / FIELD / VALUE
+%%parserControllo E` UNA parser CHE ANALIZZA I SINGOLI ELEMENTI / FIELD / VALUE
 
 %% Controllo sulla commplesita` dell'atomo
-funzioneControllo(A, B) :-
-    funzione(A, B),
+parserControllo(JSONTerm, JSONParsed) :-
+    parser(JSONTerm, JSONParsed),
     !.
 
-%% " Gestione del simbolo "" per stringhe JSON "
-funzioneControllo(A, B) :-
-    nonvar(A),
-    var(B),
-    A =.. [B | []],
-    %term_string(A, B),
+%%Gestione del simbolo  per stringhe JSON 
+parserControllo(JSONTerm, JSONParsed) :-
+    nonvar(JSONTerm),
+    JSONTerm =.. [JSONParsed | []],
+    is_jsonValue(JSONTerm),
     !. 
 
-funzioneControllo(A, B) :-
-    nonvar(B),
-    var(A),
-    B =.. [A | []],
-    %term_string(B, A),
-    !.
-
-funzioneControllo(A, B) :-
-    nonvar(B),
-    nonvar(A),
-    A =.. [B | []],
-    %term_string(A, B),
+parserControllo(JSONTerm, JSONParsed) :-
+    nonvar(JSONParsed),
+    var(JSONTerm),
+    JSONParsed =.. [JSONTerm | []],
+    is_jsonValue(JSONTerm),
     !.
 
 %% [ Array con 2 elementi da analizzare rimasti ]
-funzioneArray([A | [B]], [Ares, Bres]) :- 
-    funzioneControllo(A, Ares),
-    funzioneControllo(B, Bres),
+parserArray([Element1 | [Element2]], [Element1Parsed, Element2Parsed]) :- 
+    parserControllo(Element1, Element1Parsed),
+    parserControllo(Element2, Element2Parsed),
     !.
 
 %% [ Array con elementi da analizzare > 2 ] 
-funzioneArray(X, [Ares | Lres]) :-
-    X =.. ['[|]' | [A | [Ls]]],
-    funzioneControllo(A, Ares),
-    funzioneArray(Ls, Lres).
+parserArray(JSONTerm, [ElementParsed| ElementsParsed]) :-
+    JSONTerm =.. ['[|]' | [Element | [Elements]]],
+    parserControllo(Element, ElementParsed),
+    parserArray(Elements, ElementsParsed).
 
-%funzione(A, Result1) :-
- %   funzione(A, Result1).
+is_jsonValue(Value) :-
+    string(Value),
+    !.
+is_jsonValue(Value) :-
+    number(Value),
+    !. 
 
-% ZAOSHANG HAO ZHONGGUO XIANZAI WO YOU BINGQILIN WO HEN XIUHAN BINGQILIN
+
+jsonaccess(JSONObj, [], JSONObj) :- !.
+jsonaccess(JSONObj, [Field | Fields], Result) :-
+    string(Field),
+    analizzaObj(JSONObj, Field, Value),
+    jsonaccess(Value, Fields, Result),
+    !.
+
+jsonaccess(JSONArray, [Index | Fields], Result) :-
+    number(Index),
+    analizzaArray(JSONArray, Index, Value),
+    jsonaccess(Value, Fields, Result).
+
+analizzaObj(jsonobj(JSONObj), Field, Result) :-
+    JSONObj =.. ['[|]', Member, _],
+    Member =.. [',', Field, Result],
+    !.
+
+analizzaObj(jsonobj(JSONObj), Field, Result) :-
+    JSONObj =.. ['[|]', _, Members],
+    analizzaObj(jsonobj(Members), Field, Result).
+
+analizzaArray(jsonarray([Element | _]), 0, Element) :- !.
+analizzaArray(jsonarray([_ | Elements]), Index, Result) :- 
+    IndexNew is Index - 1,
+    analizzaArray(jsonarray(Elements), IndexNew, Result).
+
