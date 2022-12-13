@@ -114,8 +114,10 @@ is_jsonValue(Value) :-
 is_jsonValue(Value) :-
     number(Value),
     !. 
-
-
+is_jsonValue('null').
+is_jsonValue('false').
+is_jsonValue('true').
+    
 jsonaccess(JSONObj, [], JSONObj) :- !.
 jsonaccess(JSONObj, [Field | Fields], Result) :-
     string(Field),
@@ -142,3 +144,14 @@ analizzaArray(jsonarray([_ | Elements]), Index, Result) :-
     IndexNew is Index - 1,
     analizzaArray(jsonarray(Elements), IndexNew, Result).
 
+jsonread(Filename, JSONObj) :-
+    open(Filename, read, File),
+    read_string(File, _, JSONString),
+    jsonparse(JSONString, JSONObj),
+    close(File).
+
+jsondump(Filename, JSONObj) :-
+    jsonparse(JSONString, JSONObj),
+    open(Filename, write, File),
+    write(File, JSONString),
+    close(File).
