@@ -1,5 +1,7 @@
 # Parser Formato JSON Standard in prolog
+- ### L'operatore `=..`
 
+- ### Bidirezionalità
 
 - ### Lista Clausole Implementate
   - `jsonparse/2` : 
