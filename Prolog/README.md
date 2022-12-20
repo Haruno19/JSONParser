@@ -2,4 +2,7 @@
 
 
 - ### Lista Clausole Implementate
-  - ciao 
+  - `jsonparse/2` : 
+  - `parser/2` :
+  - **`funzioneObj/2`** :
+  - a  
