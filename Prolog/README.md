@@ -1,5 +1,5 @@
 # Parser Formato JSON Standard in prolog
-- ### L'operatore `=..`
+- #### L'operatore `=..`
 
 - ### Bidirezionalità
 
