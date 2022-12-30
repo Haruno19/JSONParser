@@ -1,4 +1,4 @@
-(defun JSONParser (JSONString) 
+(defun JSONParse (JSONString) 
         (AnalizzaStringa (string-trim " \n" JSONString))
 )
 
