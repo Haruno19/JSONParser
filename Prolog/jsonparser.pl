@@ -4,6 +4,7 @@
 
 %%%% -*- Mode: Prolog -*-
 %%%% jsonparser.pl
+:- consult('formatString.pl').
 
 jsonparse(JSONAtom, JSONObj) :-
     var(JSONAtom),
@@ -20,41 +21,41 @@ parser('{}', jsonobj([])).
 parser([], jsonarray([])).
 parser(JSONTerm, jsonobj(Result)) :-
     JSONTerm =.. ['{}' | [Members]],
-    funzioneObj(Members, Result),
+    formatObj(Members, Result),
     !.
 parser(JSONTerm, jsonarray(Result)) :-
     JSONTerm =.. ['[|]' | [Element | [Elements]]],
-    funzioneArray([Element | [Elements]], Result),
+    formatArray([Element | [Elements]], Result),
     !.
 
-funzioneObj(Members, [Result1 | Result2]) :-
+formatObj(Members, [Result1 | Result2]) :-
     Members =.. [',' | [A | [B]]],
-    funzioneAsdrubale(A, Result1),
-    funzioneObj(B, Result2),
+    formatMember(A, Result1),
+    formatObj(B, Result2),
     !.
-funzioneObj(Members, [Result]) :- funzioneAsdrubale(Members, Result).
+formatObj(Members, [Result]) :- formatMember(Members, Result).
 
-funzioneAsdrubale(Member, (Field, ValueDef)) :-
+formatMember(Member, (Field, ValueDef)) :-
     Member =.. [':' | [Field | [Value]]],
     string(Field),
     isjsonvalue(Value, ValueDef).
 
-funzioneArray([A | [[]]], [ADef]) :- isjsonvalue(A, ADef), !.
-funzioneArray([A | [B]], [ADef | R]) :-
+formatArray([A | [[]]], [ADef]) :- isjsonvalue(A, ADef), !.
+formatArray([A | [B]], [ADef | R]) :-
     isjsonvalue(A, ADef),
     B =.. ['[|]' | [C | [Z]]],
-    funzioneArray([C | [Z]], R).
+    formatArray([C | [Z]], R).
 
 isjsonvalue(JSONTerm, JSONParsed) :- parser(JSONTerm, JSONParsed), !.
 isjsonvalue(JSONTerm, JSONParsed) :-
     JSONTerm =.. [JSONParsed],
-    is_jsonValue(JSONTerm).
+    atomicValue(JSONTerm).
 
-is_jsonValue('true').
-is_jsonValue('false').
-is_jsonValue('null').
-is_jsonValue(Val) :- string(Val).
-is_jsonValue(Val) :- number(Val).
+atomicValue('true').
+atomicValue('false').
+atomicValue('null').
+atomicValue(Val) :- string(Val).
+atomicValue(Val) :- number(Val).
 
 
 jsonread(Filename, JSONObj) :-
@@ -65,39 +66,42 @@ jsonread(Filename, JSONObj) :-
 
 jsondump(Filename, JSONObj) :-
     jsonparse(JSONString, JSONObj),
+    string_chars(JSONString, C),
+    formStr(C, Cdef, 0),
+    string_chars(JSONStringDef, Cdef),
     open(Filename, write, File),
-    write(File, JSONString),
+    write(File, JSONStringDef),
     close(File).
 
 jsonaccess(jsonobj(M), [], jsonobj(M)) :- !.
 jsonaccess(JSONObj, [Field | Fields], Result) :-
-    analizza(JSONObj, Field, Value),
+    analyzeString(JSONObj, Field, Value),
     jsonaccess(Value, Fields, Result), !.
 
 jsonaccess(JSONObj, [Field | []], Result) :-
-    analizza(JSONObj, Field, Result), !.
+    analyzeString(JSONObj, Field, Result), !.
 
 jsonaccess(JSONObj, A, Result) :- 
     not(is_list(A)),
     term_to_atom(ADef, A),
     jsonaccess(JSONObj, [ADef], Result), !.
 
-analizza(JO, Field, R) :- string(Field), estraiObj(JO, Field, R).
-analizza(JO, Field, R) :- number(Field), estraiArray(JO, Field, R).
+analyzeString(JO, Field, R) :- string(Field), extractObj(JO, Field, R).
+analyzeString(JO, Field, R) :- number(Field), extractArray(JO, Field, R).
 
-estraiObj(jsonobj(JSONObj), Field, Result) :-
+extractObj(jsonobj(JSONObj), Field, Result) :-
     JSONObj =.. ['[|]', Member, _],
     Member =.. [',', Field, Result],
     !.
     
-estraiObj(jsonobj(JSONObj), Field, Result) :-
+extractObj(jsonobj(JSONObj), Field, Result) :-
     JSONObj =.. ['[|]', _, Members],
-    estraiObj(jsonobj(Members), Field, Result).
+    extractObj(jsonobj(Members), Field, Result).
 
-estraiArray(jsonarray([Element | _]), 0, Element) :- !.
-estraiArray(jsonarray([_ | Elements]), Index, Result) :-
+extractArray(jsonarray([Element | _]), 0, Element) :- !.
+extractArray(jsonarray([_ | Elements]), Index, Result) :-
     IndexNew is Index - 1,
     Elements \= [],
-    estraiArray(jsonarray(Elements), IndexNew, Result).
+    extractArray(jsonarray(Elements), IndexNew, Result).
 
 %%%% end of file -- jsonparser.pl
