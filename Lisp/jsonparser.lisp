@@ -51,9 +51,7 @@
             ((= Counter (length String)) (ERROR "Syntax Error in JSON String"))
             ((CHAR= (char String Counter) Char)
                   (cons (subseq String 0 Counter) 
-                        (TailSplitter (string-trim " \n" (subseq String (+ Counter 1) (length String))))
-                  )
-            )
+                        (TailSplitter (string-trim " \n" (subseq String (+ Counter 1) (length String))))))
             (T (StringSplitter String Char (+ Counter 1)))))
 
 ;ControllaValue ritorna (cons VALUE TAIL)
@@ -63,8 +61,6 @@
             (cond ((NULL V) nil)
                   ((< V (length String)) (cons (subseq String 0 V) (subseq String (+ V 1) (length String))))
                   (T (cons (subseq String 0 V) nil)))))
-
-;[ "a",{"zz":{"aa":[{"a":"b","c":{}}
 
 ;ValueSplitter ritorna la posizione della fine del campo value AKA (fine stringa / prima virgola significativa)
 (defun ValueSplitter (String Pcounter Acounter Ccounter) 
@@ -107,3 +103,34 @@
       (cond ((NULL Obj) (ERROR "Index not found"))
             ((= 0 (car Indexes)) (Asdrubale (car Obj) (rest Indexes)))
             (T (IndexFinder (rest Obj) (append (list (- (car Indexes) 1)) (rest Indexes))))))
+
+(defun JSONDump (Obj FileName) 
+      (with-open-file (stream filename :direction :output 
+                                       :if-exists :supersede
+                                       :if-does-not-exist :create)
+            (cond ((write-string (ParseReverse Obj) stream) filename))))
+
+(defun ParseReverse (Obj)
+      (cond ((eq (car obj) 'JSONOBJ) (concatenate 'string "{" (JSONobjParser (rest Obj)) "}"))
+            ((eq (car obj) 'JSONARRAY) (concatenate 'string "[" (JSONarrayParser (rest Obj)) "]"))
+            (T (ERROR "Invalid Object"))))
+
+(defun JSONobjParser (Obj)
+      (cond ((NULL Obj) "")
+            ((not (NULL (rest Obj))) (concatenate 'string (jsonfieldparser (car (car Obj))) ":" (jsonvalueparser (car (cdr (car Obj)))) ", " (jsonobjparser (rest Obj))))
+            (T (concatenate 'string (jsonfieldparser (car (car Obj))) ":" (jsonvalueparser (car (cdr (car Obj))))))))
+
+(defun JSONarrayParser (Obj)
+      (cond ((NULL Obj) "")
+            ((not (NULL (rest Obj))) (concatenate 'string (jsonvalueparser (car Obj)) ", " (jsonarrayparser (rest Obj))))
+            (T (concatenate 'string (jsonvalueparser (car Obj))))))
+
+(defun JSONfieldParser (Field)
+      (cond ((stringp Field) (concatenate 'string (string #\") Field (string #\")))
+            (T (ERROR "Invalid Field"))))
+
+(defun JSONvalueParser (Value)
+      (cond ((listp Value) (ParseReverse Value))
+            ((stringp Value) (jsonfieldparser Value))
+            ((numberp Value)  (write-to-string Value))
+            (T (ERROR "Invalid Value"))))
