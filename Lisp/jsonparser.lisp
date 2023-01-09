@@ -1,43 +1,46 @@
 (defun JSONParse (JSONString) 
-        (AnalizzaStringa (string-trim " \n" JSONString)))
+        (StringAnalyzer (string-trim " \n" JSONString)))
 
 ;(JSONARRAY (FIELD VALUE) (FIELD VALUE) (FIELD VALUE) ...)
-(defun AnalizzaStringa (JSONString)
+(defun StringAnalyzer (JSONString)
     (cond ((and  (CHAR= (char JSONString 0) #\{) 
                  (CHAR= (char JSONString (- (length JSONString) 1)) #\}))
           (append (list 'JSONOBJ) 
-                (AnalizzaOBJ 
+                (OBJAnalyzer 
                   (subseq JSONString 1 (- (length JSONString) 1)))))
 
           ((and  (CHAR= (char JSONString 0) #\[) 
                  (CHAR= (char JSONString (- (length JSONString) 1)) #\]))
           (append (list 'JSONARRAY) 
-                (AnalizzaArray 
+                (ArrayAnalyzer 
                   (subseq JSONString 1 (- (length JSONString) 1)))))
 
           (T (ERROR "Syntax Error in JSON String"))))
 
-; (cons (cons FIELD VALUE) (AnalizzaObj TAIL))
-(defun AnalizzaOBJ (Members)
+; (cons (cons FIELD VALUE) (OBJAnalyzer TAIL))
+(defun OBJAnalyzer (Members)
       (let* ((A (StringSplitter (string-trim " \n" Members) #\: 0)))
             (cond ((NULL A) nil)
                   (T (cons (cons (isField (string-trim " \n" (car A)))
                         (list (isValue (string-trim " \n" (car (cdr A))))))
-                        (AnalizzaObj (cdr (cdr A))))))))
+                        (OBJAnalyzer (cdr (cdr A))))))))
 
 
-(defun AnalizzaArray (Elements)
+(defun ArrayAnalyzer (Elements)
       (let* ((EL (tailsplitter Elements)))
             (cond ((NULL Elements) nil)
                   ((string= Elements "") nil)
                   (T (append 
                         (list (isValue (string-trim " \n" (car EL)))) 
-                        (analizzaarray (cdr EL)))))))
+                        (ArrayAnalyzer (cdr EL)))))))
 
 (defun isValue (Value)
       (cond ((NULL Value) nil)
-            ((char= (char Value 0) #\{) (AnalizzaStringa Value))
-            ((char= (char Value 0) #\[) (AnalizzaStringa Value))
+            ((string= Value "true") 'true)
+            ((string= Value "false") 'false)
+            ((string= Value "null") 'null)
+            ((char= (char Value 0) #\{) (StringAnalyzer Value))
+            ((char= (char Value 0) #\[) (StringAnalyzer Value))
             ((char= (char Value 0) #\") (isField Value))
             (T (isNumber Value))))
 
@@ -117,9 +120,9 @@
             (jsonparse contents))))
 
 (defun JSONaccess (Obj &rest Fields)
-      (Asdrubale Obj Fields))
+      (GetFields Obj Fields))
 
-(defun Asdrubale (Obj Fields)
+(defun GetFields (Obj Fields)
       (cond ((NULL (car Fields)) Obj)
             ((and 
                   (stringp (car Fields)) 
@@ -133,12 +136,12 @@
 (defun FieldFinder (Obj Fields)
       (cond ((NULL Obj) (ERROR "Field not found"))
             ((string= (car Fields) (car (car Obj))) 
-                  (Asdrubale (second (car Obj)) (rest Fields)))
+                  (GetFields (second (car Obj)) (rest Fields)))
             (T (FieldFinder (rest Obj) Fields))))
 
 (defun IndexFinder (Obj Indexes)
       (cond ((NULL Obj) (ERROR "Index not found"))
-            ((= 0 (car Indexes)) (Asdrubale (car Obj) (rest Indexes)))
+            ((= 0 (car Indexes)) (GetFields (car Obj) (rest Indexes)))
             (T (IndexFinder 
                   (rest Obj) (append (list 
                         (- (car Indexes) 1)) (rest Indexes))))))
@@ -185,4 +188,7 @@
       (cond ((listp Value) (ParseReverse Value))
             ((stringp Value) (jsonfieldparser Value))
             ((numberp Value)  (write-to-string Value))
+            ((eq Value 'true) (string Value))
+            ((eq Value 'false) (string Value))
+            ((eq Value 'null) (string Value))
             (T (ERROR "Invalid Value"))))
