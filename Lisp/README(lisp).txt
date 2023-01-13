@@ -50,10 +50,10 @@ this function parses the json string contained in the file at the specified
 path using the JSONParse function, and returns it.
 
 JSONACCESS\2+
-this function returns the return of the sasso function with the given first
+this function returns the return of the getFields function with the given first
 argument (Obj) and a finite list of its remaining arguments as arguments.
 
-SASSO\2
+GETFIELDS\2
 this function returns the value in the given parsed JSON object which position
 is specified by a series of arguments (Fields).
 
