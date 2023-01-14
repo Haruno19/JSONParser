@@ -1,5 +1,7 @@
 README - JSONParse.lisp
 
+-- Functions & Functioning --
+
 JSONPARSE\1
 this fuction's argument is a lisp string, it returns the parsed string
 calling the StringAnalyzer function with the trimmed string as argument. 
@@ -71,3 +73,14 @@ ReverseParse function, writes the string to the output file which path
 is specified as second argument, and returns the path to the file.
 
 PARSEREVERSE\1
+
+
+-- Usage --
+
+> (jsonparse "JSON_string")
+> (jsonaccess JSONObj Field1 Field2 ...)
+
+I/O
+
+> (jsonread "path_to_file")
+> (jsondump JSONObj "path_to_file")
