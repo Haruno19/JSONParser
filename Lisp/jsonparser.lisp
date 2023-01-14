@@ -2,6 +2,9 @@
 ; Simioni Giorgio 887522
 ; Gini Stefano 879276
 
+;;;; -*- Mode: Lisp -*-
+;;;; jsonparser.lisp
+
 (defun JSONParse (JSONString) 
         (StringAnalyzer (string-trim " \n" JSONString)))
 
