@@ -73,7 +73,27 @@ ReverseParse function, writes the string to the output file which path
 is specified as second argument, and returns the path to the file.
 
 PARSEREVERSE\1
+This function takes as argument a parsed JSON object, check whether it's an object
+or and array, and passes it as argument at the respective function, JSONObjParser 
+or JSONArrayParser.
 
+JSONOBJPARSER\1
+This function takes as argument a parsed JSON object, and returns an unparsed 
+JSON string, concatenating the first JSON member with the result of the recursive
+call with the rest of the object passed as argument.
+
+JSONARRAYPARSER\1
+This function takes as argument a parsed JSON array, and returns an unparsed 
+JSON string, concatenating the first element as string with the result of the
+recursive call with the rest of the array passed as argument.
+
+JSONFIELDPARSER\1
+This function checks whether the JSON field passed as argument is a valid string 
+or no, and returns it as it is, or exits with an Invalid Field error.
+
+JSONVALUEPARSER\1
+This function takes as argument a JSON value, and checks whether its syntax is
+correct or not, it then returns it as a string or exits with an Invalid Value error.
 
 -- Usage --
 
