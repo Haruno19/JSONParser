@@ -1,3 +1,7 @@
+; Marcaccio Riccardo 886023
+; Simioni Giorgio 887522
+; Gini Stefano 879276
+
 (defun JSONParse (JSONString) 
         (StringAnalyzer (string-trim " \n" JSONString)))
 
