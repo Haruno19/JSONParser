@@ -1,5 +1,7 @@
 README - JSONParse.pl
 
+-- Predicates & Functioning --
+
 JSONPARSE\2
 this predicate has 2 rules, one for converting the JSON String (the first argument) to a Parsed
 JSON Ojbect (the second argument), meanwhile the other rule converts from an already Parsed
@@ -60,3 +62,13 @@ EXTRACTARRAY\3
 this predicate unifies its third argument (Result) with the array's element which is in
 the position specified in the second argument (Index).
 
+
+-- Usage --
+
+?- jsonparse(JSONString, Object).
+?- jsonaccess(JSONObj, Fields, Result).
+
+I/O:
+
+?- jsonread(FileName, JSON).
+?- jsondump(JSON, FileName).
