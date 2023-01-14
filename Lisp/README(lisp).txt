@@ -95,6 +95,7 @@ JSONVALUEPARSER\1
 This function takes as argument a JSON value, and checks whether its syntax is
 correct or not, it then returns it as a string or exits with an Invalid Value error.
 
+
 -- Usage --
 
 > (jsonparse "JSON_string")
