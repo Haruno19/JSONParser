@@ -45,7 +45,7 @@
       (cond ((NULL Value) nil)
             ((string= Value "true") 'true)
             ((string= Value "false") 'false)
-            ((string= Value "null") 'null)
+            ((string= Value "ull") 'null)
             ((char= (char Value 0) #\{) (StringAnalyzer Value))
             ((char= (char Value 0) #\[) (StringAnalyzer Value))
             ((char= (char Value 0) #\") (isField Value))
