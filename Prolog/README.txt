@@ -1,4 +1,7 @@
 README - JSONParse.pl
+LINK TO THE GITHUB REPOSITORY: https://github.com/Haruno19/JSONParser
+The repository is set to public, so it is possible to see the chenges made at every commit ever
+made by any contributor, as additional proof of this project's authenticity and ownership. 
 
 -- Predicates & Functioning --
 
